@@ -1,0 +1,32 @@
+Запрос свободных номеров в Москве с 03-08-2021 по 05-08-2021 для 3х и более гостей:
+
+select distinct r.*
+from rooms r
+    left join booking b on b.rooms_id = r.id
+    left join hotels h on r.hotels_id = h.id
+where (b.rooms_id is null or '2021-08-03' > end_date or '2021-08-05' < start_date) AND h.locations_id = 3 AND r.max_guests >= 3;
+
+Результат:
+4	Стандартный двухместный номер с 1 кроватью	2	2	3	0	3	1	4550.00
+5	Стандартный двухместный номер с 1 кроватью	2	2	3	0	5	1	6100.00
+6	Двухместный номер "Премиум"	2	2	3	0	3	1	4750.00
+7	Двухместный номер "Премиум"	2	2	3	0	5	1	6350.00
+
+
+
+VIEW №1 Все отели России(у меня их всего 4 вбито)
+CREATE OR REPLACE VIEW hotels_russia AS 
+SELECT 
+	l.city_name city_name,
+    h.name hotel_name, 
+    h.address hotel_address    
+FROM hotels h LEFT JOIN locations l ON l.id = h.locations_id
+WHERE l.country_code = 643;
+
+view №2 Показывает наличие номеров с минимальной стоимостью в каждом отеле, при условии, если минимальная стоимость меньше 5000.
+CREATE OR REPLACE VIEW `min_price` AS 
+select 
+`r`.`name` AS `room_name`,
+`r`.`hotels_id` AS `hotel_id`,
+min(`r`.`daily_rate(RUB)`) AS `min_price` 
+from `rooms` `r` group by `hotel_id` having (`min_price` < 5000);
